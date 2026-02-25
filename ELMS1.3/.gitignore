@@ -1,0 +1,21 @@
+# IDE
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.Python
+*.pyo
+.DS_Store
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Loyiha
+instance/
+server.log
+uploads/
+*.db

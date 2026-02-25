@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Yangi API kaliti yaratish{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{{ url_for('admin.api_keys') }}" class="text-primary-600 hover:underline">← API kalitlari ro'yxatiga qaytish</a>
+</div>
+<div class="max-w-2xl">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Yangi API kaliti yaratish</h1>
+    <p class="text-gray-600 mb-6">Mobil ilova (APK) uchun yangi API kaliti yaratish. Kalit faqat bir marta ko'rsatiladi — uni xavfsiz joyda saqlang.</p>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <form method="POST" action="{{ url_for('admin.api_keys_create') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Ilova nomi</label>
+                <input type="text" id="name" name="name" required
+                    placeholder="Masalan: Android ilova, iOS ilova"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors">
+                    API kalitini yaratish
+                </button>
+                <a href="{{ url_for('admin.api_keys') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+                    Bekor qilish
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

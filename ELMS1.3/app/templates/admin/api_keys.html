@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Mobil ilovalar uchun API kalitlari{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Mobil ilovalar (APK) uchun API kalitlari</h1>
+        <p class="text-gray-600">Android/iOS ilovalar tizimga API orqali ulanishi uchun kalit yarating</p>
+    </div>
+    <a href="{{ url_for('admin.api_keys_create') }}" class="px-4 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        Yangi API kaliti
+    </a>
+</div>
+
+<!-- API base URL -->
+<div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
+    <p class="text-sm font-medium text-indigo-800 mb-1">API asosiy manzil (mobil ilovada ishlatish uchun):</p>
+    <code class="text-sm text-indigo-700 bg-white px-2 py-1 rounded border border-indigo-200">{{ request.url_root.rstrip('/') }}/api/mobile</code>
+    <p class="text-xs text-indigo-600 mt-2">So'rovlarda <code class="bg-white px-1 rounded">X-API-Key: &lt;kalitingiz&gt;</code> header qo'shing.</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+    <div class="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+        <h2 class="text-lg font-semibold text-gray-900">API kalitlari ro'yxati</h2>
+        <p class="text-sm text-gray-500">Dostup yoqilgan kalitlar API dan foydalanishi mumkin; o‘chirilganlar bloklanadi.</p>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Ilova nomi</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Kalit (prefiks)</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Dostup</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Yaratilgan / Oxirgi ishlatilgan</th>
+                    <th class="text-right py-3 px-4 text-sm font-medium text-gray-600">Boshqaruv</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+        {% for key in api_keys %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="py-4 px-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">{{ key.name }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 font-mono text-sm text-gray-600">...{{ key.key_prefix }}</td>
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full {% if key.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {% if key.is_active %}
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            Dostup berilgan
+                            {% else %}
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Dostup berilmagan
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4 text-xs text-gray-500">
+                        {{ key.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        {% if key.last_used_at %}<br><span class="text-gray-400">Ishlatilgan: {{ key.last_used_at.strftime('%d.%m.%Y %H:%M') }}</span>{% endif %}
+                    </td>
+                    <td class="py-4 px-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <form action="{{ url_for('admin.api_key_toggle', key_id=key.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="px-3 py-1.5 text-sm rounded-lg {% if key.is_active %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %} transition-colors whitespace-nowrap">
+                                    {% if key.is_active %}Dostupni o'chirish{% else %}Dostupni yoqish{% endif %}
+                                </button>
+                            </form>
+                            <form action="{{ url_for('admin.api_key_delete', key_id=key.id) }}" method="POST" class="inline" onsubmit="return confirm('Ushbu API kalitini butunlay o\'chirishni xohlaysizmi?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">O'chirish</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if not api_keys %}
+    <div class="p-8 text-center text-gray-500">
+        <p class="mb-4">Hali API kaliti yaratilmagan.</p>
+        <a href="{{ url_for('admin.api_keys_create') }}" class="text-primary-600 hover:underline">Birinchi API kalitini yaratish</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
