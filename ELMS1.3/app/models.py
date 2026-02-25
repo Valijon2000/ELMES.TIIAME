@@ -759,6 +759,22 @@ class GradeScale(db.Model):
 
 
 # ==================== API KALITI (MOBIL ILOVALAR UCHUN) ====================
+# API kaliti uchun dostup turlari (admin va mobil API da ishlatiladi)
+API_KEY_PERMISSIONS = [
+    ('subjects', 'Fanlar'),
+    ('grades', 'Baholar'),
+    ('login', 'Login / Parol (auth)'),
+    ('teachers', "O'qituvchilar"),
+    ('admin', 'Admin'),
+    ('videos', 'Videolar'),
+    ('students', 'Talabalar'),
+    ('groups', 'Guruhlar'),
+    ('directions', "Yo'nalishlar"),
+    ('schedule', 'Dars jadvali'),
+    ('faculties', 'Fakultetlar'),
+]
+
+
 class ApiKey(db.Model):
     """Mobil ilovalar (APK) uchun API kaliti"""
     __tablename__ = 'api_key'
@@ -766,9 +782,22 @@ class ApiKey(db.Model):
     name = db.Column(db.String(100), nullable=False)  # Ilova nomi (masalan: Android ilova)
     key_prefix = db.Column(db.String(16), nullable=False)  # Kalitning oldingi qismi (ko'rsatish uchun)
     key_hash = db.Column(db.String(256), nullable=False)  # Kalitning xesh (hash) qilingan qismi
+    permissions = db.Column(db.Text, default='[]')  # JSON: ["subjects", "grades", ...] - qaysi dostuplar berilgan
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     last_used_at = db.Column(db.DateTime, nullable=True)  # Oxirgi ishlatilgan vaqt
+
+    def get_permissions_list(self):
+        """Berilgan dostuplar ro'yxatini qaytaradi."""
+        import json
+        try:
+            return json.loads(self.permissions or '[]')
+        except (ValueError, TypeError):
+            return []
+
+    def has_permission(self, code):
+        """Berilgan dostup kodiga ega ekanini tekshiradi."""
+        return code in self.get_permissions_list()
 
     def __repr__(self):
         return f'<ApiKey {self.name} ...{self.key_prefix}>'

@@ -1,0 +1,31 @@
+========================================
+  GitHub (Valijon2000/ELMES.TIIAME) ga yuklash
+========================================
+
+Git o'rnatilgan bo'lishi kerak: https://git-scm.com/download/win
+
+USUL 1 — GitHub Desktop
+  - Loyihani oching (File → Add local repository → shu papka)
+  - O'zgarishlarni "Commit" qiling
+  - "Push origin" bosing
+
+USUL 2 — CMD yoki PowerShell (Git o'rnatilgan bo'lsa)
+  Quyidagi buyruqlarni ketma-ket bajarang:
+
+  cd /d "c:\Users\User\Desktop\LMS\ELMS1.3\ELMS1.3"
+
+  git remote set-url origin https://github.com/Valijon2000/ELMES.TIIAME.git
+  git add .
+  git status
+  git commit -m "Loyiha yangilandi"
+  git push -u origin main
+
+  (Login/token so'ralsa — GitHub username va Personal Access Token kiriting.)
+
+USUL 3 — github_yuklash.bat
+  Shu papkada github_yuklash.bat ni ikki marta bosing
+  (Git CMD yoki "Git Bash" da ishlashi kerak.)
+
+========================================
+Repo: https://github.com/Valijon2000/ELMES.TIIAME
+========================================

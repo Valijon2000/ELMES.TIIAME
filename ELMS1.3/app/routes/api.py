@@ -21,16 +21,20 @@ def get_api_key_from_request():
     return None
 
 
-def mobile_api_required(f):
-    """Mobil API uchun: X-API-Key talab qiladi."""
+def mobile_api_required(permission=None):
+    """Mobil API uchun: X-API-Key talab qiladi. permission berilsa, shu dostup kalitda yoqilgan bo'lishi kerak."""
     from functools import wraps
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        api_key = get_api_key_from_request()
-        if not api_key:
-            return jsonify({'error': 'X-API-Key kerak yoki kalit noto\'g\'ri'}), 401
-        return f(*args, **kwargs)
-    return decorated
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            api_key = get_api_key_from_request()
+            if not api_key:
+                return jsonify({'error': 'X-API-Key kerak yoki kalit noto\'g\'ri'}), 401
+            if permission and not api_key.has_permission(permission):
+                return jsonify({'error': f'Ushbu kalitga "{permission}" dostupi berilmagan'}), 403
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
 
 @bp.route('/users/search')
 @login_required
@@ -194,22 +198,24 @@ def get_groups():
 
 # ==================== MOBIL ILOVALAR (APK) UCHUN API ====================
 @bp.route('/mobile/info')
-@mobile_api_required
+@mobile_api_required()
 def mobile_info():
-    """API kaliti to'g'ri ekanligini va tizim ma'lumotini qaytaradi."""
+    """API kaliti to'g'ri ekanligini va kalitdagi dostuplar ro'yxatini qaytaradi."""
+    api_key = get_api_key_from_request()
     return jsonify({
         'success': True,
         'message': 'API kaliti qabul qilindi',
+        'permissions': api_key.get_permissions_list() if api_key else [],
         'endpoints': {
+            'faculties': '/api/mobile/faculties',
             'directions': '/api/mobile/directions',
             'groups': '/api/mobile/groups',
-            'faculties': '/api/mobile/faculties',
         }
     })
 
 
 @bp.route('/mobile/faculties')
-@mobile_api_required
+@mobile_api_required('faculties')
 def mobile_faculties():
     """Fakultetlar ro'yxati (mobil ilova uchun)."""
     faculties = Faculty.query.order_by(Faculty.name).all()
@@ -217,7 +223,7 @@ def mobile_faculties():
 
 
 @bp.route('/mobile/directions')
-@mobile_api_required
+@mobile_api_required('directions')
 def mobile_directions():
     """Yo'nalishlar ro'yxati (mobil ilova uchun). faculty_id ixtiyoriy filter."""
     faculty_id = request.args.get('faculty_id', type=int)
@@ -229,7 +235,7 @@ def mobile_directions():
 
 
 @bp.route('/mobile/groups')
-@mobile_api_required
+@mobile_api_required('groups')
 def mobile_groups():
     """Guruhlar ro'yxati (mobil ilova uchun)."""
     faculty_id = request.args.get('faculty_id', type=int)

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_file, Response, session
 from flask_login import login_required, current_user
-from app.models import User, Faculty, Group, Subject, TeacherSubject, Assignment, Direction, GradeScale, Schedule, UserRole, StudentPayment, DirectionCurriculum, ApiKey
+from app.models import User, Faculty, Group, Subject, TeacherSubject, Assignment, Direction, GradeScale, Schedule, UserRole, StudentPayment, DirectionCurriculum, ApiKey, API_KEY_PERMISSIONS
 from app import db
 from functools import wraps
 from datetime import datetime
@@ -62,13 +62,20 @@ def index():
 
 
 # ==================== MOBIL ILOVALAR (APK) UCHUN API KALITLARI ====================
+def _get_selected_permissions_from_form():
+    """Formadan tanlangan dostuplar ro'yxatini qaytaradi."""
+    import json
+    selected = request.form.getlist('permissions')
+    return selected if isinstance(selected, list) else []
+
+
 @bp.route('/api-keys')
 @login_required
 @admin_required
 def api_keys():
     """Mobil ilovalar uchun API kalitlari ro'yxati"""
     keys = ApiKey.query.order_by(ApiKey.created_at.desc()).all()
-    return render_template('admin/api_keys.html', api_keys=keys)
+    return render_template('admin/api_keys.html', api_keys=keys, permissions_list=API_KEY_PERMISSIONS)
 
 
 @bp.route('/api-keys/create', methods=['GET', 'POST'])
@@ -81,16 +88,34 @@ def api_keys_create():
         if not name:
             flash("Ilova nomi kiritilishi shart", 'error')
             return redirect(url_for('admin.api_keys_create'))
-        # Kalit yaratish: xavfsiz token
+        perms = _get_selected_permissions_from_form()
+        import json
+        permissions_json = json.dumps(perms)
         raw_key = secrets.token_urlsafe(32)
         key_prefix = raw_key[:12]
         key_hash = generate_password_hash(raw_key, method='scrypt:32768:8:1')
-        api_key = ApiKey(name=name, key_prefix=key_prefix, key_hash=key_hash)
+        api_key = ApiKey(name=name, key_prefix=key_prefix, key_hash=key_hash, permissions=permissions_json)
         db.session.add(api_key)
         db.session.commit()
         flash("API kaliti yaratildi. Kalitni faqat bir marta ko'rsatiladi — nusxalab oling!", 'success')
         return render_template('admin/api_key_created.html', api_key_obj=api_key, raw_key=raw_key)
-    return render_template('admin/api_keys_create.html')
+    return render_template('admin/api_keys_create.html', permissions_list=API_KEY_PERMISSIONS)
+
+
+@bp.route('/api-keys/<int:key_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def api_key_edit(key_id):
+    """API kaliti dostuplarini tahrirlash"""
+    api_key = ApiKey.query.get_or_404(key_id)
+    if request.method == 'POST':
+        perms = _get_selected_permissions_from_form()
+        import json
+        api_key.permissions = json.dumps(perms)
+        db.session.commit()
+        flash("Dostuplar yangilandi", 'success')
+        return redirect(url_for('admin.api_keys'))
+    return render_template('admin/api_key_edit.html', api_key=api_key, permissions_list=API_KEY_PERMISSIONS)
 
 
 @bp.route('/api-keys/<int:key_id>/delete', methods=['POST'])

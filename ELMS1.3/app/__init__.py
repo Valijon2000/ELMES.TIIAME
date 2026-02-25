@@ -125,6 +125,13 @@ def create_app(config_class=Config):
                     if 'is_active' not in submission_columns:
                         conn.execute(text("ALTER TABLE submission ADD COLUMN is_active BOOLEAN DEFAULT 1"))
                         conn.execute(text("UPDATE submission SET is_active = 1 WHERE is_active IS NULL"))
+            
+            # api_key jadvaliga permissions ustunini qo'shish
+            if 'api_key' in inspector.get_table_names():
+                api_key_columns = [col['name'] for col in inspector.get_columns('api_key')]
+                if 'permissions' not in api_key_columns:
+                    with db.engine.begin() as conn:
+                        conn.execute(text("ALTER TABLE api_key ADD COLUMN permissions TEXT DEFAULT '[]'"))
         except Exception as e:
             # Migration xatosi bo'lsa, xato log qilish lekin dasturni ishga tushirish
             app.logger.warning(f"Migration xatosi (bu normal bo'lishi mumkin): {e}")

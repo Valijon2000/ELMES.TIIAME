@@ -32,6 +32,7 @@
                 <tr>
                     <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Ilova nomi</th>
                     <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Kalit (prefiks)</th>
+                    <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Asosiy dostuplar</th>
                     <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Dostup</th>
                     <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Yaratilgan / Oxirgi ishlatilgan</th>
                     <th class="text-right py-3 px-4 text-sm font-medium text-gray-600">Boshqaruv</th>
@@ -52,6 +53,18 @@
                     </td>
                     <td class="py-4 px-4 font-mono text-sm text-gray-600">...{{ key.key_prefix }}</td>
                     <td class="py-4 px-4">
+                        {% set key_perms = key.get_permissions_list() %}
+                        {% set main_perms = [('login', 'Login / Parol'), ('admin', 'Admin')] %}
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            {% for code, label in main_perms %}
+                            <a href="{{ url_for('admin.api_key_edit', key_id=key.id) }}" class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded-full {% if code in key_perms %}bg-green-500 text-white{% else %}bg-red-500 text-white{% endif %} hover:opacity-90" title="{{ label }} — barcha dostuplar uchun bosing">
+                                <span class="w-0.5 h-0.5 rounded-full bg-white/80"></span>
+                                {% if code in key_perms %}ON{% else %}OFF{% endif %} · {{ label }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="py-4 px-4">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full {% if key.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
                             {% if key.is_active %}
                             <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
@@ -68,6 +81,7 @@
                     </td>
                     <td class="py-4 px-4 text-right">
                         <div class="flex items-center justify-end gap-2">
+                            <a href="{{ url_for('admin.api_key_edit', key_id=key.id) }}" class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Dostuplar</a>
                             <form action="{{ url_for('admin.api_key_toggle', key_id=key.id) }}" method="POST" class="inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="px-3 py-1.5 text-sm rounded-lg {% if key.is_active %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}bg-green-100 text-green-700 hover:bg-green-200{% endif %} transition-colors whitespace-nowrap">

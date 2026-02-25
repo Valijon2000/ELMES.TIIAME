@@ -1,0 +1,13 @@
+# Barcha matnli fayllar uchun avtomatik line ending (LF saqlanadi, checkout da CRLF bo'lishi mumkin)
+* text=auto
+
+# Aniq LF talab qilish (ixtiyoriy - agar CRLF muammosi davom etsa)
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.ini text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

@@ -1,0 +1,14 @@
+# Render.com uchun konfiguratsiya (https://github.com/Valijon2000/ELMES.TIIAME)
+# Dashboard: Render → New → Web Service → Repo ulang, avtomatik yuklanadi
+
+services:
+  - type: web
+    name: elmes-tiiame
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.12.0"

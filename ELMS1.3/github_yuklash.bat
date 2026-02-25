@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo   GitHub ga yuklash (valijon0119/elm)
+echo   GitHub ga yuklash (Valijon2000/ELMES.TIIAME)
 echo ========================================
 echo.
 
@@ -14,6 +14,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Windows da line ending muammosini oldini olish
+git config --global core.autocrlf true
+
 if not exist ".git" (
     echo Git repozitoriyasi yaratilmoqda...
     git init
@@ -21,7 +24,7 @@ if not exist ".git" (
 )
 
 git remote remove origin 2>nul
-git remote add origin https://github.com/valijon0119/elm.git
+git remote add origin https://github.com/Valijon2000/ELMES.TIIAME.git
 
 git add .
 git diff --cached --quiet 2>nul
@@ -37,7 +40,7 @@ if errorlevel 1 (
     echo https://github.com/settings/tokens
 ) else (
     echo.
-    echo [OK] Muvaffaqiyatli yuklandi: https://github.com/valijon0119/elm
+    echo [OK] Muvaffaqiyatli yuklandi: https://github.com/Valijon2000/ELMES.TIIAME
 )
 
 echo.
