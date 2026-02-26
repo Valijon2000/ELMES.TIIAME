@@ -14,8 +14,10 @@ __pycache__/
 venv/
 env/
 
-# Loyiha
-instance/
+# Loyiha (instance/eduspace.db repoga qo'shiladi)
+instance/*
+!instance/eduspace.db
 server.log
 uploads/
 *.db
+!instance/eduspace.db
