@@ -5,6 +5,7 @@ services:
   - type: web
     name: elmes-tiiame
     runtime: python
+    rootDir: ELMS1.3
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
     envVars:

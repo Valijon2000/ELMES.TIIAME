@@ -19,7 +19,8 @@ Repozitoriya: **https://github.com/Valijon2000/ELMES.TIIAME**
 
 1. [render.com](https://render.com) → **Dashboard** → **New** → **Web Service**
 2. **Connect repository** → GitHub bilan ulang → **Valijon2000/ELMES.TIIAME** ni tanlang
-3. Sozlamalar (avtomatik bo‘lishi mumkin):
+3. Sozlamalar (muhim):
+   - **Root Directory:** `ELMS1.3` (loyiha shu papkada — bo‘lmasa build xato beradi)
    - **Build Command:** `pip install -r requirements.txt`
    - **Start Command:** `gunicorn run:app --bind 0.0.0.0:$PORT`
 4. **Environment** da:
@@ -27,7 +28,12 @@ Repozitoriya: **https://github.com/Valijon2000/ELMES.TIIAME**
    - **DATABASE_URL** — (ixtiyoriy) Agar Render PostgreSQL qo‘shsangiz, avtomatik beriladi
 5. **Create Web Service** → deploy tugayguncha kuting.
 
-## 3. Muhim
+## 3. "Deploy failed" / Build xato bo‘lsa
+
+- **Sabab:** Repo ildizida `run.py` va `requirements.txt` yo‘q, ular **ELMS1.3** papkasida.
+- **Yechim:** Render Dashboard → Service → **Settings** → **Build & Deploy** → **Root Directory** maydoniga `ELMS1.3` yozing va **Save** bosing. Keyin **Manual Deploy** → **Deploy latest commit**.
+
+## 4. Muhim
 
 - Birinchi marta **SQLite** ishlatiladi (ma’lumotlar server qayta ishga tushganda yangilanadi).
 - Doimiy ma’lumot uchun Render **PostgreSQL** qo‘shing va **DATABASE_URL** ni o‘rnating.

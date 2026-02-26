@@ -24,14 +24,29 @@ def get_api_key_from_request():
 def mobile_api_required(permission=None):
     """Mobil API uchun: X-API-Key talab qiladi. permission berilsa, shu dostup kalitda yoqilgan bo'lishi kerak."""
     from functools import wraps
+    perm_names = {'faculties': 'Fakultetlar', 'directions': "Yo'nalishlar", 'groups': 'Guruhlar'}
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
+            raw_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+            if not raw_key:
+                return jsonify({
+                    'error': 'API kaliti yuborilmagan',
+                    'message': 'So\'rovda X-API-Key header yoki ?api_key=KALIT parametri kerak.'
+                }), 401
             api_key = get_api_key_from_request()
             if not api_key:
-                return jsonify({'error': 'X-API-Key kerak yoki kalit noto\'g\'ri'}), 401
+                return jsonify({
+                    'error': 'Kalit noto\'g\'ri yoki o\'chirilgan',
+                    'message': 'Admin panelda API kalitlari bo\'limida kalitni tekshiring, dostup yoqilgan bo\'lishi kerak.'
+                }), 401
             if permission and not api_key.has_permission(permission):
-                return jsonify({'error': f'Ushbu kalitga "{permission}" dostupi berilmagan'}), 403
+                name = perm_names.get(permission, permission)
+                return jsonify({
+                    'error': f'Dostup berilmagan: {name}',
+                    'message': f'Ushbu kalitga "{name}" dostupi yoqilmagan. Admin → API kalitlari → Dostuplar → {name} ni ON qiling.',
+                    'required_permission': permission
+                }), 403
             return f(*args, **kwargs)
         return decorated
     return decorator
@@ -202,15 +217,17 @@ def get_groups():
 def mobile_info():
     """API kaliti to'g'ri ekanligini va kalitdagi dostuplar ro'yxatini qaytaradi."""
     api_key = get_api_key_from_request()
+    perms = api_key.get_permissions_list() if api_key else []
     return jsonify({
         'success': True,
         'message': 'API kaliti qabul qilindi',
-        'permissions': api_key.get_permissions_list() if api_key else [],
+        'permissions': perms,
         'endpoints': {
-            'faculties': '/api/mobile/faculties',
-            'directions': '/api/mobile/directions',
-            'groups': '/api/mobile/groups',
-        }
+            'faculties': '/api/mobile/faculties  (dostup: faculties)',
+            'directions': '/api/mobile/directions (dostup: directions)',
+            'groups': '/api/mobile/groups (dostup: groups)',
+        },
+        'usage': 'Har bir endpoint uchun X-API-Key header yoki ?api_key=KALIT yuboring. Agar 403 qaytsa, Admin panelda ushbu kalitga tegishli dostuplarni ON qiling.'
     })
 
 
@@ -219,7 +236,7 @@ def mobile_info():
 def mobile_faculties():
     """Fakultetlar ro'yxati (mobil ilova uchun)."""
     faculties = Faculty.query.order_by(Faculty.name).all()
-    return jsonify([{'id': f.id, 'name': f.name, 'code': f.code} for f in faculties])
+    return jsonify({'data': [{'id': f.id, 'name': f.name, 'code': f.code} for f in faculties], 'count': len(faculties)})
 
 
 @bp.route('/mobile/directions')
@@ -231,7 +248,7 @@ def mobile_directions():
     if faculty_id:
         query = query.filter_by(faculty_id=faculty_id)
     directions = query.order_by(Direction.name).all()
-    return jsonify([{'id': d.id, 'name': d.name, 'code': d.code, 'faculty_id': d.faculty_id} for d in directions])
+    return jsonify({'data': [{'id': d.id, 'name': d.name, 'code': d.code, 'faculty_id': d.faculty_id} for d in directions], 'count': len(directions)})
 
 
 @bp.route('/mobile/groups')
@@ -246,12 +263,15 @@ def mobile_groups():
     if direction_id:
         query = query.filter_by(direction_id=direction_id)
     groups = query.order_by(Group.name).all()
-    return jsonify([{
-        'id': g.id,
-        'name': g.name,
-        'faculty_id': g.faculty_id,
-        'direction_id': g.direction_id,
-        'course_year': g.course_year,
-        'semester': g.semester,
-        'education_type': g.education_type,
-    } for g in groups])
+    return jsonify({
+        'data': [{
+            'id': g.id,
+            'name': g.name,
+            'faculty_id': g.faculty_id,
+            'direction_id': g.direction_id,
+            'course_year': g.course_year,
+            'semester': g.semester,
+            'education_type': g.education_type,
+        } for g in groups],
+        'count': len(groups)
+    })
